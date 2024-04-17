@@ -1,0 +1,7 @@
+---
+# Handler to start Docker if installed
+- name: Ensure Docker is started and enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: yes

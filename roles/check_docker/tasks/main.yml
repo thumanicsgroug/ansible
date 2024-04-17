@@ -1,0 +1,9 @@
+---
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker_installed
+  ignore_errors: true
+
+- name: Install Docker
+  include_tasks: docker_install.yml
+  when: docker_installed.rc != 0
