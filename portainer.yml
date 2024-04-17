@@ -3,10 +3,6 @@
   hosts: all
   become: true
   tasks:
-    - name: Install Docker
-      include_role:
-        name: geerlingguy.docker
-
     - name: Ensure Docker service is running
       service:
         name: docker
