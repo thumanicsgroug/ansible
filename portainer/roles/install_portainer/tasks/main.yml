@@ -1,32 +1,28 @@
 ---
-- name: Install and Configure Portainer on Docker Hosts
-  hosts: all
-  become: true
-  tasks:
-    - name: Ensure Docker service is running
-      service:
-        name: docker
-        state: started
-        enabled: yes
+- name: Ensure Docker service is running
+  service:
+    name: docker
+    state: started
+    enabled: yes
 
-    - name: Deploy Portainer container
-      docker_container:
-        name: portainer
-        image: portainer/portainer-ce:latest
-        state: started
-        restart_policy: always
-        ports:
-          - "9000:9000"
-          - "8000:8000"
-        volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-          - portainer_data:/data
-        labels:
-          io.portainer.ssl: "true"
-          io.portainer.ssl.certificate: "/certs/portainer.crt"
-          io.portainer.ssl.key: "/certs/portainer.key"
+- name: Deploy Portainer container
+  docker_container:
+    name: portainer
+    image: portainer/portainer-ce:latest
+    state: started
+    restart_policy: always
+    ports:
+      - "9000:9000"
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      io.portainer.ssl: "true"
+      io.portainer.ssl.certificate: "/certs/portainer.crt"
+      io.portainer.ssl.key: "/certs/portainer.key"
 
-    - name: Ensure Portainer is running
-      uri:
-        url: http://localhost:9000
-        status_code: 200
+- name: Ensure Portainer is running
+  uri:
+    url: http://localhost:9000
+    status_code: 200
