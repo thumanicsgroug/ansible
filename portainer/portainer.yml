@@ -1,7 +1,7 @@
+---
 - name: Install and Configure Portainer on Docker Hosts
   hosts: all
   become: true
-
   roles:
-    - {role: check_docker, tags: "check_docker"}
-    - {role: install_portainer, tags: "install_portainer"}
+    - { role: check_docker, tags: ["check_docker"] }
+    - { role: install_portainer, tags: ["install_portainer"] }
