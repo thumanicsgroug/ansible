@@ -1,0 +1,60 @@
+---
+- name: Install AWX
+  hosts: localhost
+  become: yes
+  vars:
+    awx_namespace: awx
+
+  tasks:
+    - name: Download Kustomize with curl
+      ansible.builtin.shell:
+        cmd: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+        creates: /usr/local/bin/kustomize
+
+    - name: Move Kustomize to the /usr/local/bin directory
+      ansible.builtin.shell:
+        cmd: mv kustomize /usr/local/bin
+      args:
+        creates: /usr/local/bin/kustomize
+
+    - name: Ensure namespace {{ awx_namespace }} exists
+      ansible.builtin.shell:
+        cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Generate AWX resource file
+      ansible.builtin.copy:
+        dest: "./awx.yaml"
+        content: |
+          ---
+          apiVersion: awx.ansible.com/v1beta1
+          kind: AWX
+          metadata:
+            name: awx
+          spec:
+            service_type: nodeport
+            nodeport_port: 30060                   
+
+    - name: Fetch latest release tag of AWX Operator
+      ansible.builtin.shell:
+        cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
+      register: release_tag
+      changed_when: false
+
+    - name: Create kustomization.yaml
+      ansible.builtin.copy:
+        dest: "./kustomization.yaml"
+        content: |
+          ---
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          resources:
+            - github.com/ansible/awx-operator/config/default?ref={{ release_tag.stdout }}
+            - awx.yaml
+          images:
+            - name: quay.io/ansible/awx-operator
+              newTag: {{ release_tag.stdout }}
+          namespace: {{ awx_namespace }}                    
+
+    - name: Apply Kustomize configuration
+      ansible.builtin.shell:
+        cmd: kustomize build . | kubectl apply -f -
