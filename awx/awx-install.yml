@@ -1,6 +1,6 @@
 ---
 - name: Install AWX
-  hosts: localhost
+  hosts: all
   become: yes
   vars:
     awx_namespace: awx
