@@ -61,19 +61,19 @@
       changed_when: false
 
     - name: Create kustomization.yaml
-          ansible.builtin.copy:
-            dest: "./kustomization.yaml"
-            content: |
-              ---
-              apiVersion: kustomize.config.k8s.io/v1beta1
-              kind: Kustomization
-              resources:
-                - github.com/ansible/awx-operator/config/default?ref={{ release_tag.stdout }}
-                - awx.yaml
-              images:
-                - name: quay.io/ansible/awx-operator
-                  newTag: {{ release_tag.stdout }}
-              namespace: {{ awx_namespace }}   
+      ansible.builtin.copy:
+        dest: "./kustomization.yaml"
+        content: |
+          ---
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          resources:
+            - github.com/ansible/awx-operator/config/default?ref={{ release_tag.stdout }}
+            - awx.yaml
+          images:
+            - name: quay.io/ansible/awx-operator
+              newTag: {{ release_tag.stdout }}
+          namespace: {{ awx_namespace }}   
 
     - name: Apply Kustomize configuration
       ansible.builtin.shell:
