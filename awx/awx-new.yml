@@ -36,22 +36,9 @@
       args:
         chdir: /usr/local/bin
 
-    - name: Ensure namespace "{{ awx_namespace }}"" exists
+    - name: Ensure namespace "{{ awx_namespace }}" exists
       ansible.builtin.shell:
         cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
-
-    - name: Generate AWX resource file
-      ansible.builtin.copy:
-        dest: "./awx.yaml"
-        content: |
-          ---
-          apiVersion: awx.ansible.com/v1beta1
-          kind: AWX
-          metadata:
-            name: awx
-          spec:
-            service_type: nodeport
-            nodeport_port: 30060
 
     - name: Fetch latest release tag of AWX Operator
       ansible.builtin.shell:
@@ -72,9 +59,16 @@
           images:
             - name: quay.io/ansible/awx-operator
               newTag: {{ release_tag.stdout }}
-          namespace: {{ awx_namespace }}   
+          namespace: {{ awx_namespace }}
 
     - name: Apply Kustomize configuration
       ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
 
+    - name: Wait for CRDs to become available
+      ansible.builtin.command:
+        cmd: kubectl wait --for condition=established --timeout=60s crd/awxs.awx.ansible.com
+
+    - name: Apply AWX configuration
+      ansible.builtin.command:
+        cmd: kubectl apply -f awx.yaml
