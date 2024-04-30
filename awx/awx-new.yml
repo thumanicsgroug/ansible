@@ -57,7 +57,7 @@
       ansible.builtin.uri:
         url: "https://api.github.com/repos/ansible/awx-operator/releases/latest"
         return_content: yes
-      register: github_release
+      register: release_tag
       changed_when: false
 
     - name: Create kustomization.yaml
