@@ -23,6 +23,12 @@
         name: kubernetes
         executable: pip3
 
+    - name: Install k3s via the official script
+          ansible.builtin.shell:
+            cmd: curl -sfL https://get.k3s.io | sh -
+          args:
+            creates: /usr/local/bin/k3s
+
     - name: Download and install Kustomize
       ansible.builtin.shell:
         cmd: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
@@ -30,17 +36,9 @@
       args:
         chdir: /usr/local/bin
 
-    - name: Install community.kubernetes collection
-      ansible.builtin.command:
-        cmd: ansible-galaxy collection install community.kubernetes
-
-    - name: Create a namespace in Kubernetes
-      community.kubernetes.k8s:
-        api_version: v1
-        kind: Namespace
-        name: "{{ awx_namespace }}"
-        state: present
-
+    - name: Ensure namespace "{{ awx_namespace }}"" exists
+      ansible.builtin.shell:
+        cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
 
     - name: Generate AWX resource file
       ansible.builtin.copy:
