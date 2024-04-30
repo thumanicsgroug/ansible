@@ -10,7 +10,7 @@
     - name: Update apt cache
       apt:
         update_cache: yes
-        cache_valid_time: 3600  # This ensures the cache is valid for 1 hour; adjust as needed
+        cache_valid_time: 3600 # This ensures the cache is valid for 1 hour; adjust as needed
 
     - name: Ensure Python3 and Pip are installed
       apt:
@@ -34,15 +34,27 @@
       notify:
         - Run install Kustomize script
 
-    - name: Ensure namespace exists
-      community.kubernetes.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: "{{ awx_namespace }}"
+    - name: Install Kubernetes collection
+      hosts: localhost
+      gather_facts: no
+      tasks:
+        - name: Install community.kubernetes collection
+          ansible.builtin.command:
+            cmd: ansible-galaxy collection install community.kubernetes
+          changed_when: false # This task does not alter the system state
 
+    - name: Create a namespace in Kubernetes
+      hosts: localhost
+      gather_facts: no
+      tasks:
+        - name: Ensure namespace exists using community.kubernetes.k8s
+          community.kubernetes.k8s:
+            state: present
+            definition:
+              apiVersion: v1
+              kind: Namespace
+              metadata:
+                name: example-namespace
 
     - name: Generate AWX resource file
       copy:
