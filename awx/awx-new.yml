@@ -58,6 +58,15 @@
         return_content: yes
       register: github_release
       changed_when: false
+      
+    - name: Ensure namespace exists using community.kubernetes.k8s
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ awx_namespace }}"
 
     - name: Set release tag variable
       set_fact:
@@ -80,19 +89,6 @@
 
     - name: Apply Kustomize configuration
       command: kustomize build . | kubectl apply -f -
-
-- name: Create a namespace in Kubernetes
-  hosts: localhost
-  gather_facts: no
-  tasks:
-    - name: Ensure namespace exists using community.kubernetes.k8s
-      community.kubernetes.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: "{{ awx_namespace }}"
 
   handlers:
     - name: Run install Kustomize script
