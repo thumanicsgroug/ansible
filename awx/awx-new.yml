@@ -11,7 +11,6 @@
       apt:
         update_cache: yes
         cache_valid_time: 3600  # This ensures the cache is valid for 1 hour; adjust as needed
-      become: true
 
     - name: Ensure Python3 and Pip are installed
       apt:
@@ -24,7 +23,6 @@
       pip:
         name: kubernetes
         executable: pip3
-      become: true
 
     - name: Download and install Kustomize
       ansible.builtin.shell:
@@ -33,29 +31,22 @@
       args:
         chdir: /usr/local/bin
         creates: /usr/local/bin/kustomize
+      notify:
+        - Run install Kustomize script
 
-    - name: Create Kubernetes namespace 'awx'
+    - name: Ensure namespace {{ awx_namespace }} exists
       community.kubernetes.k8s:
         state: present
         definition:
           apiVersion: v1
           kind: Namespace
           metadata:
-            name: awx
+            name: "{{ awx_namespace }}"
       register: namespace_result
 
     - name: Display creation result
       ansible.builtin.debug:
         msg: "Namespace created: {{ namespace_result }}"
-
-    - name: Ensure namespace {{ awx_namespace }} exists
-      k8s:
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: "{{ awx_namespace }}"
-        state: present
 
     - name: Generate AWX resource file
       copy:
@@ -79,7 +70,7 @@
 
     - name: Set release tag variable
       set_fact:
-        release_tag: "{{ (github_release.json['tag_name']) }}"
+        release_tag: "{{ github_release.json['tag_name'] }}"
 
     - name: Create kustomization.yaml
       copy:
@@ -101,6 +92,6 @@
 
   handlers:
     - name: Run install Kustomize script
-      command: "/tmp/install_kustomize.sh"
+      command: "/usr/local/bin/kustomize"
       args:
         creates: "/usr/local/bin/kustomize"
