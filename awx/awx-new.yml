@@ -42,11 +42,7 @@
           kind: Namespace
           metadata:
             name: "{{ awx_namespace }}"
-      register: namespace_result
 
-    - name: Display creation result
-      ansible.builtin.debug:
-        msg: "Namespace created: {{ namespace_result }}"
 
     - name: Generate AWX resource file
       copy:
