@@ -80,5 +80,6 @@
           namespace: {{ awx_namespace }}
 
     - name: Apply Kustomize configuration
-      ansible.builtin.command:
+      ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
+
