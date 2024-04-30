@@ -24,10 +24,10 @@
         executable: pip3
 
     - name: Install k3s via the official script
-          ansible.builtin.shell:
-            cmd: curl -sfL https://get.k3s.io | sh -
-          args:
-            creates: /usr/local/bin/k3s
+      ansible.builtin.shell:
+        cmd: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
 
     - name: Download and install Kustomize
       ansible.builtin.shell:
