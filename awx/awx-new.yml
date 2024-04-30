@@ -34,14 +34,10 @@
       notify:
         - Run install Kustomize script
 
-    - name: Install Kubernetes collection
-      hosts: localhost
-      gather_facts: no
-      tasks:
-        - name: Install community.kubernetes collection
-          ansible.builtin.command:
-            cmd: ansible-galaxy collection install community.kubernetes
-          changed_when: false # This task does not alter the system state
+    - name: Install community.kubernetes collection
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install community.kubernetes
+      changed_when: false # This task does not alter the system state
 
     - name: Create a namespace in Kubernetes
       hosts: localhost
@@ -54,7 +50,7 @@
               apiVersion: v1
               kind: Namespace
               metadata:
-                name: example-namespace
+                name: { { awx_namespace } }
 
     - name: Generate AWX resource file
       copy:
