@@ -33,7 +33,6 @@
     - name: Install community.kubernetes collection
       ansible.builtin.command:
         cmd: ansible-galaxy collection install community.kubernetes
-      changed_when: false
 
     - name: Create a namespace in Kubernetes
       community.kubernetes.k8s:
