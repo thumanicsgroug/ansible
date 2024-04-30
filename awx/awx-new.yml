@@ -34,7 +34,7 @@
       notify:
         - Run install Kustomize script
 
-    - name: Ensure namespace {{ awx_namespace }} exists
+    - name: Ensure namespace exists
       community.kubernetes.k8s:
         state: present
         definition:
