@@ -3,6 +3,7 @@
   become: yes
   vars:
     awx_namespace: awx
+    release_tag: 2.15.0
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
@@ -40,11 +41,11 @@
       ansible.builtin.shell:
         cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
 
-    - name: Fetch latest release tag of AWX Operator
-      ansible.builtin.shell:
-        cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
-      register: release_tag
-      changed_when: false
+    # - name: Fetch latest release tag of AWX Operator
+    #   ansible.builtin.shell:
+    #     cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
+    #   register: release_tag
+    #   changed_when: false
 
     - name: Create kustomization.yaml
       ansible.builtin.copy:
