@@ -11,7 +11,7 @@
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: yes
-        cache_valid_time: 3600  # Cache is valid for 1 hour
+        cache_valid_time: 3600 # Cache is valid for 1 hour
 
     - name: Ensure Python3 and Pip are installed
       ansible.builtin.apt:
@@ -47,7 +47,7 @@
         cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
       register: release_tag
       changed_when: false
-      
+
     - name: Generate AWX resource file
       ansible.builtin.copy:
         dest: "./awx.yaml"
@@ -61,7 +61,7 @@
             service_type: nodeport
             nodeport_port: 30060
             projects_persistence: true
-            projects_existing_claim: awx-projects-claim               
+            projects_existing_claim: awx-projects-claim
 
     - name: Generate PV and PVC resource files
       ansible.builtin.copy:
@@ -83,7 +83,7 @@
                 storage: {{ storage_size }}
               storageClassName: awx-projects-volume
               hostPath:
-                path: {{ project_directory }}            
+                path: {{ project_directory }}
         - dest: "./pvc.yml"
           content: |
             ---
@@ -98,7 +98,7 @@
               resources:
                 requests:
                   storage: {{ storage_size }}
-              storageClassName: awx-projects-volume            
+              storageClassName: awx-projects-volume
 
         - name: Create kustomization.yaml
           ansible.builtin.copy:
@@ -115,7 +115,7 @@
               images:
                 - name: quay.io/ansible/awx-operator
                   newTag: {{ release_tag.stdout }}
-              namespace: {{ awx_namespace }}          
+              namespace: {{ awx_namespace }}
 
     - name: Apply Kustomize configuration
       ansible.builtin.shell:
