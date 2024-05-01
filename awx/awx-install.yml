@@ -45,7 +45,7 @@
         cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
       register: release_tag
       changed_when: false
-
+      
     - name: Generate AWX resource file
       ansible.builtin.copy:
         dest: "./awx.yaml"
@@ -83,5 +83,5 @@
         cmd: kubectl wait --for condition=established --timeout=60s crd/awxs.awx.ansible.com
 
     - name: Apply AWX configuration
-      ansible.builtin.shell:
-        cmd: kustomize build . | kubectl apply -f -
+      ansible.builtin.command:
+        cmd: kubectl apply -f awx.yaml
