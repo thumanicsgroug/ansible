@@ -117,6 +117,14 @@
               newTag: {{ release_tag.stdout }}
           namespace: {{ awx_namespace }}          
 
+     - name: Wait for AWX CRDs to become available
+      ansible.builtin.command:
+        cmd: "kubectl wait --for=condition=established --timeout=60s crd/awxs.awx.ansible.com"
+      register: wait_for_crd
+      until: wait_for_crd.rc == 0
+      retries: 5
+      delay: 10
+
     - name: Apply Kustomize configuration
       ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
