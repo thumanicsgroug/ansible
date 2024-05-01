@@ -108,6 +108,6 @@
       ansible.builtin.command:
         cmd: kubectl wait --for condition=established --timeout=60s crd/awxs.awx.ansible.com
 
-    # - name: Apply AWX configuration
-    #   ansible.builtin.command:
-    #     cmd: kubectl apply -f awx.yaml
+    - name: Apply AWX configuration
+      ansible.builtin.command:
+        cmd: kubectl apply -f awx.yaml
