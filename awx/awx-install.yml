@@ -121,4 +121,4 @@
       ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
       args:
-        chdir: "./kustomization.yaml"
+        chdir: "./"
