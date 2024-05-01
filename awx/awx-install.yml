@@ -46,6 +46,19 @@
       register: release_tag
       changed_when: false
 
+    - name: Generate AWX resource file
+      ansible.builtin.copy:
+        dest: "./awx.yaml"
+        content: |
+          ---
+          apiVersion: awx.ansible.com/v1beta1
+          kind: AWX
+          metadata:
+            name: awx
+          spec:
+            service_type: nodeport
+            nodeport_port: 30060               
+
     - name: Create kustomization.yaml
       ansible.builtin.copy:
         dest: "./kustomization.yaml"
@@ -70,5 +83,5 @@
         cmd: kubectl wait --for condition=established --timeout=60s crd/awxs.awx.ansible.com
 
     - name: Apply AWX configuration
-      ansible.builtin.command:
-        cmd: kubectl apply -f awx.yaml
+      ansible.builtin.shell:
+        cmd: kustomize build . | kubectl apply -f -
