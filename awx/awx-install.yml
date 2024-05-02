@@ -116,7 +116,7 @@
             - name: quay.io/ansible/awx-operator
               newTag: {{ release_tag.stdout }}
           namespace: {{ awx_namespace }}
-
+          
     - name: Apply Kustomize configuration
       ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
@@ -130,11 +130,6 @@
       retries: 5
       delay: 10
 
-    - name: Wait for system to become reachable again
-      ansible.builtin.wait_for_connection:
-        delay: 5  # Delay before the first attempt (in seconds)
-        timeout: 300  # Total time to wait for the system to become reachable
-        
     - name: Apply Kustomize configuration
       ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
