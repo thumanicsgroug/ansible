@@ -127,7 +127,7 @@
           
     - name: Apply Kustomize configuration
       ansible.builtin.shell:
-        cmd: kustomize build . | kubectl apply -f -
+        cmd: kustomize build ./{{ awx_install_dir }} | kubectl apply -f -
         chdir: "./{{ awx_install_dir }}"
       register: kustomize_output
       failed_when: kustomize_output.stderr != ""
