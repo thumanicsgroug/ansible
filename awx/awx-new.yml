@@ -78,7 +78,7 @@
         dest: "{{ item.dest }}"
         content: "{{ item.content }}"
       loop:
-        - dest: "{{ awx_install_dir }}/pv.yaml"
+        - dest: "{{ awx_install_dir }}/pv.yml"
           content: |
             ---
             apiVersion: v1
@@ -94,7 +94,7 @@
               storageClassName: awx-projects-volume
               hostPath:
                 path: {{ project_directory }}            
-        - dest: "{{ awx_install_dir }}/pvc.yaml"
+        - dest: "{{ awx_install_dir }}/pvc.yml"
           content: |
             ---
             apiVersion: v1
@@ -119,8 +119,8 @@
           kind: Kustomization
           resources:
             - github.com/ansible/awx-operator/config/default?ref={{ release_tag.stdout }}
-            - pv.yaml
-            - pvc.yaml
+            - pv.yml
+            - pvc.yml
             - awx.yaml
           images:
             - name: quay.io/ansible/awx-operator
@@ -131,3 +131,5 @@
       ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
         chdir: "/root/awx_install"
+      register: kustomize_output
+      failed_when: kustomize_output.stderr != ""
