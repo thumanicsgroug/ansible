@@ -22,7 +22,7 @@
     - name: Recreate AWX installation directory
       ansible.builtin.file:
         path: "{{ awx_install_dir }}"
-        state: directory
+        state: present
         mode: '0755'  # Sets the permissions of the directory
 
     - name: Install Python3 and Pip
