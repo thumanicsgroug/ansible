@@ -29,8 +29,13 @@
     - name: Install Kustomize
       ansible.builtin.shell:
         cmd: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-        args:
-          creates: /usr/local/bin/kustomize
+        chdir: /usr/local/bin
+        creates: /usr/local/bin/kustomize
+
+    - name: Move Kustomize to the /usr/local/bin directory
+      ansible.builtin.shell:
+        cmd: mv kustomize /usr/local/bin
+        creates: /usr/local/bin/kustomize
 
     - name: Fetch latest AWX Operator release tag
       ansible.builtin.shell:
