@@ -127,7 +127,7 @@
     #           newTag: {{ release_tag.stdout }}
     #       namespace: {{ awx_namespace }}               
  
-    # - name: Reboot the machine if required
+     - name: Reboot the machine if required
     #   ansible.builtin.reboot:
 
     - name: Wait for system to come online
