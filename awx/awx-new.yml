@@ -126,7 +126,7 @@
             - name: quay.io/ansible/awx-operator
               newTag: {{ release_tag.stdout }}
           namespace: {{ awx_namespace }}               
-
+    
     - name: Deploy AWX using Kustomize
       ansible.builtin.shell:
-        cmd: cd /root/awx_install | kustomize build . | kubectl apply -f -
+        cmd: cd /root/awx_install && kustomize build . | kubectl apply -f -
