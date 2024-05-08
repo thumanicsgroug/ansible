@@ -5,7 +5,7 @@
     awx_namespace: awx
     project_directory: /var/lib/awx/projects
     storage_size: 2Gi
-    awx_install_dir: ./awx_install
+    awx_install_dir: /awx_install
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
@@ -13,6 +13,12 @@
       ansible.builtin.apt:
         update_cache: yes
         cache_valid_time: 3600  # Cache is valid for 1 hour
+
+    - name: Ensure AWX installation directory exists
+      ansible.builtin.file:
+        path: "{{ awx_install_dir }}"
+        state: directory
+        mode: '0755'  # Optional: sets the permissions of the directory
 
     - name: Install Python3 and Pip
       ansible.builtin.apt:
@@ -47,7 +53,6 @@
       ansible.builtin.shell:
         cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
 
-
     - name: Ensure AWX installation directory exists
       ansible.builtin.file:
         path: "{{ awx_install_dir }}"
@@ -73,8 +78,8 @@
       ansible.builtin.copy:
         dest: "{{ item.dest }}"
         content: "{{ item.content }}"
-      with_items:
-          dest: "./{{ awx_install_dir }}/pv.yaml"
+      loop:
+        - dest: "{{ awx_install_dir }}/pv.yaml"
           content: |
             ---
             apiVersion: v1
@@ -89,8 +94,8 @@
                 storage: {{ storage_size }}
               storageClassName: awx-projects-volume
               hostPath:
-                path: {{ project_directory }}
-        - dest: "./pvc.yml"
+                path: {{ project_directory }}            
+        - dest: "{{ awx_install_dir }}/pvc.yaml"
           content: |
             ---
             apiVersion: v1
@@ -104,8 +109,8 @@
               resources:
                 requests:
                   storage: {{ storage_size }}
-              storageClassName: awx-projects-volume
-
+              storageClassName: awx-projects-volume 
+    
     - name: Create kustomization.yaml
           ansible.builtin.copy:
             dest: "./{{ awx_install_dir }}/kustomization.yaml"
