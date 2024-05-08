@@ -3,14 +3,16 @@
   become: yes
   vars:
     awx_namespace: awx
-    release_tag: 2.15.0
+    project_directory: /var/lib/awx/projects
+    storage_size: 2Gi
+    awx_install_dir:
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: yes
-        cache_valid_time: 3600  # Cache is valid for 1 hour
+        cache_valid_time: 3600 # Cache is valid for 1 hour
 
     - name: Ensure Python3 and Pip are installed
       ansible.builtin.apt:
@@ -18,11 +20,6 @@
           - python3
           - python3-pip
         state: present
-
-    - name: Install the Kubernetes Python library
-      ansible.builtin.pip:
-        name: kubernetes
-        executable: pip3
 
     - name: Install k3s via the official script
       ansible.builtin.shell:
@@ -37,34 +34,100 @@
       args:
         chdir: /usr/local/bin
 
+
+    - name: Fetch latest release tag of AWX Operator
+      ansible.builtin.shell:
+        cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
+       creates: /usr/local/bin/kustomize
+
+    - name: Move Kustomize to the /usr/local/bin directory
+      ansible.builtin.shell:
+        cmd: mv kustomize /usr/local/bin
+      args:
+        creates: /usr/local/bin/kustomize
+
     - name: Ensure namespace "{{ awx_namespace }}" exists
       ansible.builtin.shell:
         cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
 
+    - name: Ensure directory awx-install exists
+      ansible.builtin.file:
+        path: "{{ awx_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Generate AWX resource file
+      ansible.builtin.copy:
+        dest: "./{{ awx_install_dir}}/awx.yaml"
+        content: |
+          ---
+          apiVersion: awx.ansible.com/v1beta1
+          kind: AWX
+          metadata:
+            name: awx
+          spec:
+            service_type: nodeport
+            nodeport_port: 30060
+            projects_persistence: true
+            projects_existing_claim: awx-projects-claim
+
+    - name: Generate PV and PVC resource files
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        content: "{{ item.content }}"
+      with_items:
+        - dest: "./{{ awx_install_dir}}/pv.yml"
+          content: |
+            ---
+            apiVersion: v1
+            kind: PersistentVolume
+            metadata:
+              name: awx-projects-volume
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              persistentVolumeReclaimPolicy: Retain
+              capacity:
+                storage: {{ storage_size }}
+              storageClassName: awx-projects-volume
+              hostPath:
+                path: {{ project_directory }}
+        - dest: "./pvc.yml"
+          content: |
+            ---
+            apiVersion: v1
+            kind: PersistentVolumeClaim
+            metadata:
+              name: awx-projects-claim
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              volumeMode: Filesystem
+              resources:
+                requests:
+                  storage: {{ storage_size }}
+              storageClassName: awx-projects-volume
 
     - name: Create kustomization.yaml
       ansible.builtin.copy:
-        dest: "./kustomization.yaml"
+        dest: "./{{ awx_install_dir}}/kustomization.yaml"
         content: |
           ---
           apiVersion: kustomize.config.k8s.io/v1beta1
           kind: Kustomization
           resources:
-            - github.com/ansible/awx-operator/config/default?ref={{ release_tag }}
+            - github.com/ansible/awx-operator/config/default?ref={{ release_tag.stdout }}
+            - pv.yml
+            - pvc.yml
             - awx.yaml
           images:
             - name: quay.io/ansible/awx-operator
-              newTag: {{ release_tag }}
+              newTag: {{ release_tag.stdout }}
           namespace: {{ awx_namespace }}
-
+          
     - name: Apply Kustomize configuration
       ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
-
-    - name: Wait for CRDs to become available
-      ansible.builtin.command:
-        cmd: kubectl wait --for condition=established --timeout=60s crd/awxs.awx.ansible.com
-
-    - name: Apply AWX configuration
-      ansible.builtin.command:
-        cmd: kubectl apply -f awx.yaml
+      args:
+        chdir: "./{{ awx_install_dir}}"
+    
