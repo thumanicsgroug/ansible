@@ -108,7 +108,7 @@
 
     - name: Create kustomization.yaml
           ansible.builtin.copy:
-          dest: "./{{ awx_install_dir }}/kustomization.yaml"
+            dest: "./{{ awx_install_dir }}/kustomization.yaml"
             content: |
               ---
               apiVersion: kustomize.config.k8s.io/v1beta1
