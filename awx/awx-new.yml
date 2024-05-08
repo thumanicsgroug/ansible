@@ -5,7 +5,7 @@
     awx_namespace: awx
     project_directory: /var/lib/awx/projects
     storage_size: 2Gi
-    awx_install_dir:
+  awx_install_dir: ./awx_install
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
