@@ -131,4 +131,3 @@
       ansible.builtin.shell:
         cmd: kustomize build . | kubectl apply -f -
         chdir: "/root/awx_install"
-      failed_when: kustomize_output.stderr != ""
