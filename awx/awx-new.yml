@@ -113,7 +113,7 @@
     
     - name: Create kustomization.yaml
       ansible.builtin.copy:
-      - dest: "{{ awx_install_dir }}/kustomization.yaml"
+        dest: "{{ awx_install_dir }}/kustomization.yaml"
         content: |
           ---
           apiVersion: kustomize.config.k8s.io/v1beta1
@@ -126,7 +126,7 @@
           images:
             - name: quay.io/ansible/awx-operator
               newTag: {{ release_tag.stdout }}
-          namespace: {{ awx_namespace }}     
+          namespace: {{ awx_namespace }}               
 
     - name: Deploy AWX using Kustomize
       ansible.builtin.shell:
