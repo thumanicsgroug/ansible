@@ -43,14 +43,10 @@
       register: release_tag
       changed_when: false
 
-    - name: Create AWX namespace if not exists
-      ansible.builtin.k8s:
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: "{{ awx_namespace }}"
-        state: present
+    - name: Ensure namespace "{{ awx_namespace }}" exists
+      ansible.builtin.shell:
+        cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
 
     - name: Ensure AWX installation directory exists
       ansible.builtin.file:
