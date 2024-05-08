@@ -129,5 +129,4 @@
 
     - name: Deploy AWX using Kustomize
       ansible.builtin.shell:
-        cmd: kustomize build . | kubectl apply -f -
-        chdir: "/root/awx_install"
+        cmd: cd "{{ awx_install_dir }}" | kustomize build . | kubectl apply -f -
