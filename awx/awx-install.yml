@@ -9,136 +9,135 @@
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
-    - name: Update apt cache
-      ansible.builtin.apt:
-        update_cache: yes
-        cache_valid_time: 3600  # Cache is valid for 1 hour
+    # - name: Update apt cache
+    #   ansible.builtin.apt:
+    #     update_cache: yes
+    #     cache_valid_time: 3600  # Cache is valid for 1 hour
 
-    - name: Remove AWX installation directory if it exists
-      ansible.builtin.file:
-        path: "{{ awx_install_dir }}"
-        state: absent
+    # - name: Remove AWX installation directory if it exists
+    #   ansible.builtin.file:
+    #     path: "{{ awx_install_dir }}"
+    #     state: absent
 
-    - name: Recreate AWX installation directory
-      ansible.builtin.file:
-        path: "{{ awx_install_dir }}"
-        state: directory
-        mode: '0755'  # Sets the permissions of the directory
+    # - name: Recreate AWX installation directory
+    #   ansible.builtin.file:
+    #     path: "{{ awx_install_dir }}"
+    #     state: directory
+    #     mode: '0755'  # Sets the permissions of the directory
 
-    - name: Install Python3 and Pip
-      ansible.builtin.apt:
-        name:
-          - python3
-          - python3-pip
-        state: present
+    # - name: Install Python3 and Pip
+    #   ansible.builtin.apt:
+    #     name:
+    #       - python3
+    #       - python3-pip
+    #     state: present
 
-    - name: Install k3s using official script
-      ansible.builtin.shell:
-        cmd: curl -sfL https://get.k3s.io | sh -
-        creates: /usr/local/bin/k3s
+    # - name: Install k3s using official script
+    #   ansible.builtin.shell:
+    #     cmd: curl -sfL https://get.k3s.io | sh -
+    #     creates: /usr/local/bin/k3s
 
-    - name: Install Kustomize
-      ansible.builtin.shell:
-        cmd: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-        chdir: /usr/local/bin
-        creates: /usr/local/bin/kustomize
+    # - name: Install Kustomize
+    #   ansible.builtin.shell:
+    #     cmd: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+    #     chdir: /usr/local/bin
+    #     creates: /usr/local/bin/kustomize
 
-    - name: Move Kustomize to the /usr/local/bin directory
-      ansible.builtin.shell:
-        cmd: mv kustomize /usr/local/bin
-        creates: /usr/local/bin/kustomize
+    # - name: Move Kustomize to the /usr/local/bin directory
+    #   ansible.builtin.shell:
+    #     cmd: mv kustomize /usr/local/bin
+    #     creates: /usr/local/bin/kustomize
 
-    - name: Fetch latest AWX Operator release tag
-      ansible.builtin.shell:
-        cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
-      register: release_tag
-      changed_when: false
+    # - name: Fetch latest AWX Operator release tag
+    #   ansible.builtin.shell:
+    #     cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
+    #   register: release_tag
+    #   changed_when: false
 
-    - name: Ensure namespace "{{ awx_namespace }}" exists
-      ansible.builtin.shell:
-        cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
+    # - name: Ensure namespace "{{ awx_namespace }}" exists
+    #   ansible.builtin.shell:
+    #     cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
 
-    - name: Generate AWX deployment configuration
-      ansible.builtin.copy:
-        dest: "{{ awx_install_dir }}/awx.yaml"
-        content: |
-          ---
-          apiVersion: awx.ansible.com/v1beta1
-          kind: AWX
-          metadata:
-            name: awx
-          spec:
-            service_type: nodeport
-            nodeport_port: 30060
-            projects_persistence: true
-            projects_existing_claim: awx-projects-claim
+    # - name: Generate AWX deployment configuration
+    #   ansible.builtin.copy:
+    #     dest: "{{ awx_install_dir }}/awx.yaml"
+    #     content: |
+    #       ---
+    #       apiVersion: awx.ansible.com/v1beta1
+    #       kind: AWX
+    #       metadata:
+    #         name: awx
+    #       spec:
+    #         service_type: nodeport
+    #         nodeport_port: 30060
+    #         projects_persistence: true
+    #         projects_existing_claim: awx-projects-claim
 
-    - name: Generate PV and PVC resource files
-      ansible.builtin.copy:
-        dest: "{{ item.dest }}"
-        content: "{{ item.content }}"
-      loop:
-        - dest: "{{ awx_install_dir }}/pv.yml"
-          content: |
-            ---
-            apiVersion: v1
-            kind: PersistentVolume
-            metadata:
-              name: awx-projects-volume
-            spec:
-              accessModes:
-                - ReadWriteOnce
-              persistentVolumeReclaimPolicy: Retain
-              capacity:
-                storage: {{ storage_size }}
-              storageClassName: awx-projects-volume
-              hostPath:
-                path: {{ project_directory }}            
-        - dest: "{{ awx_install_dir }}/pvc.yml"
-          content: |
-            ---
-            apiVersion: v1
-            kind: PersistentVolumeClaim
-            metadata:
-              name: awx-projects-claim
-            spec:
-              accessModes:
-                - ReadWriteOnce
-              volumeMode: Filesystem
-              resources:
-                requests:
-                  storage: {{ storage_size }}
-              storageClassName: awx-projects-volume 
+    # - name: Generate PV and PVC resource files
+    #   ansible.builtin.copy:
+    #     dest: "{{ item.dest }}"
+    #     content: "{{ item.content }}"
+    #   loop:
+    #     - dest: "{{ awx_install_dir }}/pv.yml"
+    #       content: |
+    #         ---
+    #         apiVersion: v1
+    #         kind: PersistentVolume
+    #         metadata:
+    #           name: awx-projects-volume
+    #         spec:
+    #           accessModes:
+    #             - ReadWriteOnce
+    #           persistentVolumeReclaimPolicy: Retain
+    #           capacity:
+    #             storage: {{ storage_size }}
+    #           storageClassName: awx-projects-volume
+    #           hostPath:
+    #             path: {{ project_directory }}            
+    #     - dest: "{{ awx_install_dir }}/pvc.yml"
+    #       content: |
+    #         ---
+    #         apiVersion: v1
+    #         kind: PersistentVolumeClaim
+    #         metadata:
+    #           name: awx-projects-claim
+    #         spec:
+    #           accessModes:
+    #             - ReadWriteOnce
+    #           volumeMode: Filesystem
+    #           resources:
+    #             requests:
+    #               storage: {{ storage_size }}
+    #           storageClassName: awx-projects-volume 
     
-    - name: Create kustomization.yaml
-      ansible.builtin.copy:
-        dest: "{{ awx_install_dir }}/kustomization.yaml"
-        content: |
-          ---
-          apiVersion: kustomize.config.k8s.io/v1beta1
-          kind: Kustomization
-          resources:
-            - github.com/ansible/awx-operator/config/default?ref={{ release_tag.stdout }}
-            - pv.yml
-            - pvc.yml
-            - awx.yaml
-          images:
-            - name: quay.io/ansible/awx-operator
-              newTag: {{ release_tag.stdout }}
-          namespace: {{ awx_namespace }}               
+    # - name: Create kustomization.yaml
+    #   ansible.builtin.copy:
+    #     dest: "{{ awx_install_dir }}/kustomization.yaml"
+    #     content: |
+    #       ---
+    #       apiVersion: kustomize.config.k8s.io/v1beta1
+    #       kind: Kustomization
+    #       resources:
+    #         - github.com/ansible/awx-operator/config/default?ref={{ release_tag.stdout }}
+    #         - pv.yml
+    #         - pvc.yml
+    #         - awx.yaml
+    #       images:
+    #         - name: quay.io/ansible/awx-operator
+    #           newTag: {{ release_tag.stdout }}
+    #       namespace: {{ awx_namespace }}               
  
-    - name: Reboot the machine if required
-      ansible.builtin.reboot:
-        reboot_timeout: 600
+    # - name: Reboot the machine if required
+    #   ansible.builtin.reboot:
 
     - name: Wait for system to come online
       ansible.builtin.wait_for_connection:
         delay: 5
         timeout: 300
 
-    - name: Deploy AWX using Kustomize
-      ansible.builtin.shell:
-        cmd: kustomize build . | kubectl apply -f -
-        chdir: "/root/awx_install"
-      register: kustomize_output
-      failed_when: kustomize_output.stderr != ""
+    # - name: Deploy AWX using Kustomize
+    #   ansible.builtin.shell:
+    #     cmd: kustomize build . | kubectl apply -f -
+    #     chdir: "/root/awx_install"
+    #   register: kustomize_output
+    #   failed_when: kustomize_output.stderr != ""
