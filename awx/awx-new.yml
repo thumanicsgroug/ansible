@@ -38,7 +38,7 @@
     - name: Fetch latest release tag of AWX Operator
       ansible.builtin.shell:
         cmd: curl -s https://api.github.com/repos/ansible/awx-operator/releases/latest | grep tag_name | cut -d '"' -f 4
-       creates: /usr/local/bin/kustomize
+      creates: /usr/local/bin/kustomize
 
     - name: Move Kustomize to the /usr/local/bin directory
       ansible.builtin.shell:
