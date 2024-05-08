@@ -5,7 +5,7 @@
     awx_namespace: awx
     project_directory: /var/lib/awx/projects
     storage_size: 2Gi
-    awx_install_dir: ./awx_install
+    awx_install_dir: /awx_install
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
@@ -14,11 +14,16 @@
         update_cache: yes
         cache_valid_time: 3600  # Cache is valid for 1 hour
 
-    - name: Ensure AWX installation directory exists
+    - name: Remove AWX installation directory if it exists
+      ansible.builtin.file:
+        path: "{{ awx_install_dir }}"
+        state: absent
+
+    - name: Recreate AWX installation directory
       ansible.builtin.file:
         path: "{{ awx_install_dir }}"
         state: directory
-        mode: '0755'  # Optional: sets the permissions of the directory
+        mode: '0755'  # Sets the permissions of the directory
 
     - name: Install Python3 and Pip
       ansible.builtin.apt:
