@@ -58,12 +58,6 @@
       ansible.builtin.shell:
         cmd: kubectl create namespace {{ awx_namespace }} --dry-run=client -o yaml | kubectl apply -f -
 
-    - name: Ensure AWX installation directory exists
-      ansible.builtin.file:
-        path: "{{ awx_install_dir }}"
-        state: directory
-        mode: '0755'
-
     - name: Generate AWX deployment configuration
       ansible.builtin.copy:
         dest: "{{ awx_install_dir }}/awx.yaml"
