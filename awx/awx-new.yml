@@ -119,14 +119,16 @@
           kind: Kustomization
           resources:
             - github.com/ansible/awx-operator/config/default?ref={{ release_tag.stdout }}
-            - pv.yml
-            - pvc.yml
+            - pv.yaml
+            - pvc.yaml
             - awx.yaml
           images:
             - name: quay.io/ansible/awx-operator
               newTag: {{ release_tag.stdout }}
           namespace: {{ awx_namespace }}               
-    
+
     - name: Deploy AWX using Kustomize
       ansible.builtin.shell:
-        cmd: cd /root/awx_install && kustomize build . | kubectl apply -f -
+        cmd: kustomize build . | kubectl apply -f -
+        chdir: "/root/awx_install"
+      failed_when: kustomize_output.stderr != ""
